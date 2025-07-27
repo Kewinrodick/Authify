@@ -22,7 +22,7 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @Builder
 @Table(name = "tbl_users")
-public class User {
+public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
