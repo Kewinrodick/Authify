@@ -1,5 +1,6 @@
 package my.project.backend.util;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -12,6 +13,7 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 @Service
 public class JwtUtils {
@@ -46,5 +48,31 @@ public class JwtUtils {
         System.out.println("////////////////////");
         return key;
     }
+    public Claims extractAllClaims(String token) {
 
+            Claims claims = Jwts.parser()
+                    .verifyWith(getSecretKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getPayload();
+            return claims;
+    }
+    public <T>T extractClaims(String token, Function<Claims,T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+    public String extractEmail(String token) {
+        return extractClaims(token, Claims::getSubject);
+    }
+    public Date extractExpiration(String token) {
+        return extractClaims(token, Claims::getExpiration);
+    }
+    public Boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+    public Boolean validateToken(String token, UserDetails userDetails) {
+        final String email = extractEmail(token);
+         return (email.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
 }
+
