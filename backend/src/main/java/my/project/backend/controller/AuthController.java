@@ -1,9 +1,11 @@
 package my.project.backend.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import my.project.backend.io.AuthRequest;
 import my.project.backend.io.AuthResponse;
 import my.project.backend.io.CommonResponse;
+import my.project.backend.io.ResetPasswordRequest;
 import my.project.backend.repository.UserRepository;
 import my.project.backend.service.AppUserDetailsService;
 import my.project.backend.service.ProfileService;
@@ -17,15 +19,17 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.CurrentSecurityContext;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,6 +38,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final AppUserDetailsService appUserDetailsService;
     private final JwtUtils jwtUtils;
+    private final ProfileService profileService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest authRequest){
@@ -73,4 +78,43 @@ public class AuthController {
         }
     }
 
+    public void authenticate(String email, String password){
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+    }
+
+    @GetMapping("is-authenticated")
+    public ResponseEntity<?> isAuthenticated(@CurrentSecurityContext (expression = "authentication?.name") String email){
+        return ResponseEntity.ok().body(email != null);
+    }
+
+    @PostMapping("/reset-password")
+    public void resetPassword (@Valid @RequestBody ResetPasswordRequest request) {
+        try{
+            profileService.resetPassword(request.getEmail(),request.getOtp(),request.getNewPassword());
+        }
+        catch (Exception e){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    @PostMapping("/send-otp")
+    public void sendVerifyOtp(@CurrentSecurityContext(expression = "authentication?.name")String email){
+            try{
+                profileService.sendOtp(email);
+            }catch (Exception e){
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            }
+    }
+    @PostMapping("/verify-otp")
+    public void verifyOtp(@RequestBody Map<String,Object> request, @CurrentSecurityContext(expression = "authentication?.name")String email){
+                if(request.get("otp").toString()==null){
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Missing otp");
+                }
+
+                try{
+                    profileService.verifyOtp(email,request.get("otp").toString());
+                }catch (Exception e){
+                    throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+                }
+    }
 }

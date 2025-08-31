@@ -45,7 +45,6 @@ public class JwtUtils {
     private SecretKey getSecretKey() {
         byte[] keyBytes = secretKey.getBytes();
         SecretKey key = Keys.hmacShaKeyFor(keyBytes);
-        System.out.println("////////////////////");
         return key;
     }
     public Claims extractAllClaims(String token) {
