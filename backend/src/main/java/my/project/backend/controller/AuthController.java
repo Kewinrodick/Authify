@@ -1,5 +1,7 @@
 package my.project.backend.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import my.project.backend.io.AuthRequest;
@@ -55,7 +57,7 @@ public class AuthController {
                     .httpOnly(true)
                     .path("/")
                     .maxAge(Duration.ofDays(1))
-                    .sameSite("Strict")
+                    .sameSite("Lax")
                     .build();
             return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
                     .body(new AuthResponse(authRequest.getEmail(), jwt));
@@ -117,4 +119,17 @@ public class AuthController {
                     throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
                 }
     }
+
+        @PostMapping("/logout")
+        public ResponseEntity<? > logout(HttpServletResponse response){
+            System.out.println("/logout");
+            ResponseCookie cookie = ResponseCookie.from("jwt","")
+                    .httpOnly(true)
+                    .path("/")
+                    .maxAge(0)
+                    .sameSite("Lax")
+                    .build();
+
+            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body("Logged out successfully");
+        }
 }

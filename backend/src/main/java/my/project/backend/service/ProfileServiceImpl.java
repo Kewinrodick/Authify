@@ -89,6 +89,7 @@ public class ProfileServiceImpl implements ProfileService {
         userRepository.save(user);
 
         try{
+            System.out.println(otp);
             emailService.sentResetOtpMail(email,otp);
         }catch (Exception e) {
             throw new RuntimeException("Unable to send email...");
