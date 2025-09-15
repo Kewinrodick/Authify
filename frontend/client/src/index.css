@@ -1,0 +1,28 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Lexend+Exa:wght@100..900&family=Outfit:wght@100..900&display=swap');
+@import "tailwindcss";
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Outfit', sans-serif;
+}
+
+body{
+    min-width:min-content;
+}
+html, body, #root {
+  height: 100%;
+}
+
+@layer components {
+  .no-spinner::-webkit-outer-spin-button,
+  .no-spinner::-webkit-inner-spin-button {
+    @apply appearance-none m-0;
+  }
+
+  .no-spinner[type="number"] {
+    @apply appearance-none;
+  }
+}
